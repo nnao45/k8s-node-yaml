@@ -23,12 +23,18 @@ spec:
         - containerPort: 3306
           name: mariadb
         volumeMounts:
-        - name: mariadb-persistent-storage
-          mountPath: /var/lib/mysql
+          - name: mariadb-mycnf
+            mountPath: /etc/mysql/my.cnf
+            subPath: my.cnf
+          - name: mariadb-persistent-storage
+            mountPath: /var/lib/mysql
       volumes:
-      - name: mariadb-persistent-storage
-        persistentVolumeClaim:
-          claimName: mariadb-pvc-001
+        - name: mariadb-mycnf
+          configMap:
+            name: mariadb-mycnf
+        - name: mariadb-persistent-storage
+          persistentVolumeClaim:
+            claimName: mariadb-pvc-001
 
 ---
 apiVersion: v1
