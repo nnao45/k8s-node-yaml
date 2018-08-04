@@ -1,0 +1,86 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mariadb-svc
+spec:
+  serviceName: mariadb-ss
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      initContainers:
+      - name: init-mariadb
+        image: mariadb:5.5.61
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          # Generate mysql server-id from pod ordinal index.
+          [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+          ordinal=${BASH_REMATCH[1]}
+          echo [mysqld] > /mnt/conf.d/server-id.cnf
+          # Add an offset to avoid reserved server-id=0 value.
+          echo server-id=$((100 + $ordinal)) >> /mnt/conf.d/server-id.cnf
+          # Copy appropriate conf.d files from config-map to emptyDir.
+          if [[ $ordinal -eq 0 ]]; then
+            cp /mnt/config-map/master.cnf /mnt/conf.d/
+          else
+            cp /mnt/config-map/slave.cnf /mnt/conf.d/
+          fi
+        volumeMounts:
+        - name: conf
+          mountPath: /mnt/conf.d
+        - name: config-map
+          mountPath: /mnt/config-map
+      containers:
+      - image: mariadb:5.5.61
+        name: mariadb
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: rootPassword
+        ports:
+        - containerPort: 3306
+          name: mysql
+        livenessProbe:
+          exec:
+            command: ["mysqladmin", "ping"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        #readinessProbe:
+        #  exec:
+            # Check we can execute queries over TCP (skip-networking is off).
+        #    command: ["mysql", "-h", "127.0.0.1", "-e", "SELECT 1"]
+        #  initialDelaySeconds: 5
+        #  periodSeconds: 2
+        #  timeoutSeconds: 1
+        volumeMounts:
+          - name: conf
+            mountPath: /etc/mysql/conf.d
+          - name: mariadb-pvc
+            mountPath: /var/lib/mysql
+            subPath: mysql
+      volumes:
+      - name: conf
+        emptyDir: {}
+      - name: config-map
+        configMap:
+          name: mariadb
+  volumeClaimTemplates:
+  - metadata:
+      name: mariadb-pvc
+    spec:
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 10Gi
