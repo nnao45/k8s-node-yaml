@@ -4,34 +4,27 @@ metadata:
   name: test-readonly
   namespace: test
 data:
-  test-text1: |
-    hoge
-  test-text2: |
-    huga
-  test-text3: |
-    piyo
   init.sh: |
     #!/bin/sh
     set -x
-    echo ${HOSTNAME} > /data/hostname
-    echo $(hostname -I | awk '{print $1}') > /data/ip_address
-    cp * /data
+    #echo ${HOSTNAME} $(hostname -I | awk '{print $1}') > /data/index.html
+    echo "<html><head><title>HTTP Hello World</title></head><body><h1>${HOSTNAME} $(hostname -I | awk '{print $1}')</h1></body></html>" > /data/index.html
 
 ---
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: test-app
+  name: test-nginx
   namespace: test
 spec:
   selector:
     matchLabels:
-      app: test-app
+      app: test-nginx
   replicas: 3
   template:
     metadata:
       labels:
-        app: test-app
+        app: test-nginx
     spec:
       initContainers:
       - name: text-data
@@ -46,15 +39,33 @@ spec:
         - name: text-data
           mountPath: /data
       containers:
-      - name: busybox
-        image: busybox:latest
-        command: ["sh", "-c", "tail -f /dev/null"]
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - name: http
+          containerPort: 80
         volumeMounts:
         - name: text-data
-          mountPath: /data
+          mountPath: /usr/share/nginx/html
       volumes:
       - name: text-data
         emptyDir: {}
       - name: test-readonly
         configMap:
           name: test-readonly
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-nginx
+  namespace: test
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: test-nginx
+  type: LoadBalancer
+
