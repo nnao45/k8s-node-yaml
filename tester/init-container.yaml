@@ -5,45 +5,55 @@ metadata:
   namespace: test
 data:
   test-text1: |
-    i am hoge
+    hoge
   test-text2: |
-    i am huga
+    huga
   test-text3: |
-    i am piyo
+    piyo
   init.sh: |
     #!/bin/sh
     set -x
+    IAM_NAME=${HOSTNAME}
+    echo ${IAM_NAME} > /data/iam_name
     cp * /data
 
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1beta2
+kind: Deployment
 metadata:
   name: test-app
   namespace: test
 spec:
-  initContainers:
-  - name: text-data
-    image: busybox
-    command:
-    - "/bin/sh"
-    - "/test-readonly/init.sh"
-    workingDir: /test-readonly
-    volumeMounts:
-    - name: test-readonly
-      mountPath: /test-readonly
-    - name: text-data
-      mountPath: /data
-  containers:
-  - name: nginx
-    image: nginx:latest
-    volumeMounts:
-    - name: text-data
-      mountPath: /data
-  volumes:
-  - name: text-data
-    emptyDir: {}
-  - name: test-readonly 
-    configMap:
-      name: test-readonly
-
+  selector:
+    matchLabels:
+      app: test-app
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      initContainers:
+      - name: text-data
+        image: busybox
+        command:
+        - "/bin/sh"
+        - "/test-readonly/init.sh"
+        workingDir: /test-readonly
+        volumeMounts:
+        - name: test-readonly
+          mountPath: /test-readonly
+        - name: text-data
+          mountPath: /data
+      containers:
+      - name: nginx
+        image: nginx:latest
+        volumeMounts:
+        - name: text-data
+          mountPath: /data
+      volumes:
+      - name: text-data
+        emptyDir: {}
+      - name: test-readonly
+        configMap:
+          name: test-readonly
