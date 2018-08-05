@@ -13,8 +13,7 @@ data:
   init.sh: |
     #!/bin/sh
     set -x
-    IAM_NAME=${HOSTNAME}
-    echo ${IAM_NAME} > /data/iam_name
+    echo ${HOSTNAME} > /data/hostname
     cp * /data
 
 ---
@@ -35,7 +34,7 @@ spec:
     spec:
       initContainers:
       - name: text-data
-        image: busybox
+        image: busybox:latest
         command:
         - "/bin/sh"
         - "/test-readonly/init.sh"
