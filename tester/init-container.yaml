@@ -7,7 +7,6 @@ data:
   init.sh: |
     #!/bin/sh
     set -x
-    #echo ${HOSTNAME} $(hostname -I | awk '{print $1}') > /data/index.html
     echo "<html><head><title>HTTP Hello World</title></head><body><h1>${HOSTNAME} $(hostname -I | awk '{print $1}')</h1></body></html>" > /data/index.html
 
 ---
