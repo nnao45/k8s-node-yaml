@@ -1,26 +1,49 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-readonly
+  namespace: test
+data:
+  test-text1: |
+    i am hoge
+  test-text2: |
+    i am huga
+  test-text3: |
+    i am piyo
+  init.sh: |
+    #!/bin/sh
+    set -x
+    cp * /data
+
+---
+apiVersion: v1
 kind: Pod
 metadata:
-  name: my-app
+  name: test-app
   namespace: test
 spec:
+  initContainers:
+  - name: text-data
+    image: busybox
+    command:
+    - "/bin/sh"
+    - "/test-readonly/init.sh"
+    workingDir: /test-readonly
+    volumeMounts:
+    - name: test-readonly
+      mountPath: /test-readonly
+    - name: text-data
+      mountPath: /data
   containers:
   - name: nginx
     image: nginx:latest
     volumeMounts:
-    - name: config-data
-      mountPath: /data
-  initContainers:
-  - name: config-data
-    image: busybox
-    command:
-    - wget
-    - "-O"
-    - "/data/config"
-    - http://kubernetes.io
-    volumeMounts:
-    - name: config-data
+    - name: text-data
       mountPath: /data
   volumes:
-  - name: config-data
+  - name: text-data
     emptyDir: {}
+  - name: test-readonly 
+    configMap:
+      name: test-readonly
+
