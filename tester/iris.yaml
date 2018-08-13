@@ -9,7 +9,7 @@ filters:
 
 destinations:
   - name: Webhook
-    url: http://10.106.202.95:8080
+    url: http://webhook-pod.iris.svc.cluster.local:8080
 
 integrations:
   - name: Report
