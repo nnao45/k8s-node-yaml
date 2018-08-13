@@ -1,0 +1,20 @@
+filters:
+  - name: MatchIrisNamespace
+    type: namespace
+    namespace: iris
+  - name: MatchPodKind
+    type: jsonpath
+    path: $.involvedObject.kind
+    value: Pod
+
+destinations:
+  - name: Webhook
+    url: http://10.106.202.95:8080
+
+integrations:
+  - name: Report
+    destinations:
+    - Webhook
+    filters:
+    - MatchPodKind
+    - MatchIrisNamespace

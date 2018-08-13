@@ -1,0 +1,37 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: webhook-pod
+  namespace: iris
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-pod
+  template:
+    metadata:
+      labels:
+        app: webhook-pod
+    spec:
+      containers:
+      - name: webhook-pod
+        image: nnao45/webhook-pod
+        ports:
+        - name: http
+          containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-pod
+  namespace: iris
+spec:
+  clusterIP: 10.106.202.95 
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: webhook-pod
