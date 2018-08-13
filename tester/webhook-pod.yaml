@@ -27,7 +27,7 @@ metadata:
   name: webhook-pod
   namespace: iris
 spec:
-  clusterIP: 10.106.202.95 
+  clusterIP: None
   ports:
   - name: http
     port: 8080
