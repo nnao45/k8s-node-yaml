@@ -1,0 +1,5 @@
+bases:
+- ../demo1
+patches:
+- deployment.yaml
+- configmap.yaml

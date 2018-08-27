@@ -1,0 +1,13 @@
+vars:
+- name: MY_SERVICE_NAME
+  objref:
+    kind: Service
+    name: my-nginx
+    apiVersion: v1
+namePrefix: test-
+patches:
+  - patch.yaml
+resources: #今回は取り上げていませんが、resourcesの設定に`path/to/yamls/*` などとワイルドカード指定が使えます
+- deployment.yaml
+- configmap.yaml
+- service.yaml
