@@ -1,0 +1,19 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: ansible-container 
+  namespace: ansible
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ansible-container
+  template:
+    metadata:
+      labels:
+        app: ansible-container
+    spec:
+      containers:
+      - name: ansible-container
+        image: nnao45/ansible-container
+        command: ["sh", "-c", "tail -f /dev/null"]
