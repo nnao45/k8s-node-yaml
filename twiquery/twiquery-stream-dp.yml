@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twiquery-stream-ds
+  namespace: twiquery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: twiquery-stream
+  template:
+    metadata:
+      labels:
+        app: twiquery-stream
+    spec:
+      containers:
+      - name: twiquery-stream-server
+        image: nnao45/twiquery-stream:0.1.1
+        envFrom:
+          - secretRef:
+              name: twiquery-stream-secret
+          - configMapRef:
+              name: query-stream-cm
